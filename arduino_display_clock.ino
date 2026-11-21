@@ -20,8 +20,6 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 
-
-int wifiStatus = WL_IDLE_STATUS;
 WiFiUDP Udp;
 NTPClient timeClient(Udp);
 
@@ -32,7 +30,7 @@ bool timeSynced = false;
 const unsigned long SYNC_INTERVAL = 3600000UL;   // 1 h
 const unsigned long RETRY_INTERVAL = 30000UL;    // 30 s
 
-
+bool connectToWiFi(unsigned long timeoutMs = 20000);
 
 void setup(){
   Serial.begin(9600);
@@ -44,9 +42,14 @@ void setup(){
   display.setCursor(0, 20);
   display.println(F("Connecting"));
   display.display();
-  connectToWiFi();
 
-
+  if (!connectToWiFi()) {
+  display.clearDisplay();
+  display.setCursor(0, 20);
+  display.println(F("No WiFi"));
+  display.display();
+  delay(4000);
+  }
 
   //RTC & NTP section
   RTC.begin();
@@ -71,16 +74,18 @@ void loop() {
 
 
 //        FUNCTIONS:
-void connectToWiFi(){
-  // attempt to connect to WiFi network:
-  while (wifiStatus != WL_CONNECTED) {
-    wifiStatus = WiFi.begin(WIFI_SSID, WIFI_PASS);
-
-    // wait for connection:
-    delay(8000);
+bool connectToWiFi(unsigned long timeoutMs) {
+  unsigned long start = millis();
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  while (WiFi.status() != WL_CONNECTED) {
+    if (millis() - start > timeoutMs) {
+      Serial.println("WiFi timeout");
+      return false;
+    }
+    delay(500);
   }
-
   Serial.println("Connected");
+  return true;
 }
 
 String twoDigits(int value) {
@@ -97,7 +102,8 @@ String formatTime(int hour, int minute) {
 bool syncTime() {
   for (int i = 0; i < 3; i++) {
     if (timeClient.forceUpdate()) {
-      RTC.setTime(RTCTime(timeClient.getEpochTime()));   // UTC
+      RTCTime utcTime(timeClient.getEpochTime());   // UTC
+      RTC.setTime(utcTime);
       Serial.println("NTP sync OK");
       return true;
     }
@@ -138,18 +144,29 @@ bool isSummerTime(int y, int m, int d, int h) {   // wszystko w UTC
 RTCTime getLocalTime() {
   RTCTime utc;
   RTC.getTime(utc);
-  bool summer = isSummerTime(utc.getYear(), Month2int(utc.getMonth()),
-                             utc.getDayOfMonth(), utc.getHour());
+  bool summer = isSummerTime(utc.getYear(), Month2int(utc.getMonth()), utc.getDayOfMonth(), utc.getHour());
   time_t local = utc.getUnixTime() + (summer ? 7200 : 3600);
   return RTCTime(local);
 }
 
 void ntpAlert(){
   display.clearDisplay();
-  display.setTextSize(3);
+  display.setTextSize(1);
   display.setCursor(0,0);
-  display.print("NTP ERROR!");
+  display.print(F("NTP ERROR!"));
+  display.display();
   delay(2000);
+}
+
+void maintainTime() {
+  unsigned long interval = timeSynced ? SYNC_INTERVAL : RETRY_INTERVAL;
+  if (millis() - lastSync < interval) return;
+  lastSync = millis();
+
+  if (WiFi.status() != WL_CONNECTED) {
+    if (!connectToWiFi(10000)) return;   // patrz punkt 5
+  }
+  if (syncTime()) timeSynced = true;
 }
 
 
