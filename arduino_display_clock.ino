@@ -27,7 +27,7 @@ int lastSecond = -1;
 
 unsigned long lastSync = 0;
 bool timeSynced = false;
-const unsigned long SYNC_INTERVAL = 3600000UL;   // 1 h
+const unsigned long SYNC_INTERVAL = 1200000UL;   // 1 h
 const unsigned long RETRY_INTERVAL = 30000UL;    // 30 s
 
 bool connectToWiFi(unsigned long timeoutMs = 20000);
