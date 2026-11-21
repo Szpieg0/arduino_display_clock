@@ -130,14 +130,14 @@ void clockScreen(){
   display.display();
 }
 
-bool isSummerTime(int y, int m, int d, int h) {   // wszystko w UTC
+bool isSummerTime(int y, int m, int d, int h) {   // All in UTC
   if (m < 3 || m > 10) return false;
   if (m > 3 && m < 10) return true;
   if (m == 3) {
     int lastSun = 31 - (5 * y / 4 + 4) % 7;
     return d > lastSun || (d == lastSun && h >= 1);
   }
-  int lastSun = 31 - (5 * y / 4 + 1) % 7;          // październik
+  int lastSun = 31 - (5 * y / 4 + 1) % 7;          // October
   return d < lastSun || (d == lastSun && h < 1);
 }
 
@@ -164,7 +164,7 @@ void maintainTime() {
   lastSync = millis();
 
   if (WiFi.status() != WL_CONNECTED) {
-    if (!connectToWiFi(10000)) return;   // patrz punkt 5
+    if (!connectToWiFi(10000)) return;
   }
   if (syncTime()) timeSynced = true;
 }
