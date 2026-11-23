@@ -64,5 +64,5 @@ void maintainTime() {
   if (WiFi.status() != WL_CONNECTED) {
     if (!connectToWiFi(10000)) return;
   }
-  if (syncTime()) timeSynced = true;
+  if (syncTime()) timeSynced = syncTime();
 }
