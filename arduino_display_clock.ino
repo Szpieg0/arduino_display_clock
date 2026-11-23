@@ -1,5 +1,5 @@
 int lastSecond = -1;
-
+uint32_t ostatniOdczytTemp = 0;
 unsigned long lastSync = 0;
 bool timeSynced = false;
 const unsigned long SYNC_INTERVAL = 600000UL;   // 10 min
@@ -7,8 +7,14 @@ const unsigned long RETRY_INTERVAL = 30000UL;    // 30 s
 
 bool connectToWiFi(unsigned long timeoutMs = 20000);
 
+int screenState = 0;
+
+/*Przygotowanie wszystkich modułów:*/
 void setup(){
   Serial.begin(9600);
+  Wire.begin();
+  pinMode(buttonPin, INPUT);
+
   display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS);
   delay(300);
   display.clearDisplay();
@@ -31,29 +37,60 @@ void setup(){
   timeClient.begin();
   timeSynced = syncTime();
   lastSync = millis();
+  if (!sht4.begin(&Wire)) {
+    display.clearDisplay();
+    display.println(F("SHT40 err."));
+    displaydisplay();
+    delay(2000);
+  }
+  sht4.setPrecision(SHT4X_MED_PRECISION);
+  sensors_event_t humidity, temp;
+  sht4.getEvent(&humidity, &temp);
+  celcius = temp.temperature;
   clockScreen();
 
 }
+
+
 void loop() {
+  if (buttonPin == 1){
+    if(screenState < 3){
+      screenState++;
+    } else{
+      screenState = 0;
+    }
+    while (buttonPin == 1){
+      delay(80);
+    }
+  }
+  switch (screenState){
+    case 0:
+      RTCTime now;
+      RTC.getTime(now);
 
-  RTCTime now;
-  RTC.getTime(now);
-
-  if (now.getSeconds() != lastSecond) {
-    lastSecond = now.getSeconds();
-    clockScreen();
+      if (now.getSeconds() != lastSecond) {
+      lastSecond = now.getSeconds();
+      clockScreen();
+      break;
+    case 1:
+      if (millis() - ostatniOdczytTemp >= interwalMs) {
+        ostatniOdczytTemp = millis();
+        sensors_event_t humidity, temp;
+        sht4.getEvent(&humidity, &temp);
+        aktualnaTemperatura = temp.temperature;
+  }
+      tempScreen();
+      break;
+  
+  }
+  
   }
   maintainTime();
 }
 
 
 
-
-
-
-
-
-//        FUNCTIONS:
+//        FUNCTIONS for all screens:
 bool connectToWiFi(unsigned long timeoutMs) {
   unsigned long start = millis();
   WiFi.begin(WIFI_SSID, WIFI_PASS);
@@ -74,61 +111,6 @@ String twoDigits(int value) {
   }
   return String(value);
 }
-
-String formatTime(int hour, int minute) {
-  return twoDigits(hour) + ":" + twoDigits(minute);
-}
-
-bool syncTime() {
-  for (int i = 0; i < 3; i++) {
-    if (timeClient.forceUpdate()) {
-      RTCTime utcTime(timeClient.getEpochTime());   // UTC
-      RTC.setTime(utcTime);
-      Serial.println("NTP sync OK");
-      return true;
-    }
-    delay(500);
-  }
-  Serial.println("NTP sync FAILED");
-  ntpAlert();
-  return false;
-}
-
-//      LIVE Functions:
-void clockScreen(){
-  RTCTime currentTime = getLocalTime();
-  int currentHour = currentTime.getHour();
-  int currentMinutes = currentTime.getMinutes();
-  int currentSeconds = currentTime.getSeconds();
-  display.clearDisplay();
-  display.setTextSize(4);
-  display.setCursor(0, 15);
-  display.print(formatTime(currentHour, currentMinutes));
-  display.setTextSize(1);
-  display.setCursor(115, 50);
-  display.print(twoDigits(currentSeconds));
-  display.display();
-}
-
-bool isSummerTime(int y, int m, int d, int h) {   // All in UTC
-  if (m < 3 || m > 10) return false;
-  if (m > 3 && m < 10) return true;
-  if (m == 3) {
-    int lastSun = 31 - (5 * y / 4 + 4) % 7;
-    return d > lastSun || (d == lastSun && h >= 1);
-  }
-  int lastSun = 31 - (5 * y / 4 + 1) % 7;          // October
-  return d < lastSun || (d == lastSun && h < 1);
-}
-
-RTCTime getLocalTime() {
-  RTCTime utc;
-  RTC.getTime(utc);
-  bool summer = isSummerTime(utc.getYear(), Month2int(utc.getMonth()), utc.getDayOfMonth(), utc.getHour());
-  time_t local = utc.getUnixTime() + (summer ? 7200 : 3600);
-  return RTCTime(local);
-}
-
 void ntpAlert(){
   display.clearDisplay();
   display.setTextSize(1);
@@ -137,16 +119,3 @@ void ntpAlert(){
   display.display();
   delay(2000);
 }
-
-void maintainTime() {
-  unsigned long interval = timeSynced ? SYNC_INTERVAL : RETRY_INTERVAL;
-  if (millis() - lastSync < interval) return;
-  lastSync = millis();
-
-  if (WiFi.status() != WL_CONNECTED) {
-    if (!connectToWiFi(10000)) return;
-  }
-  if (syncTime()) timeSynced = true;
-}
-
-
