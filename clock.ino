@@ -62,9 +62,7 @@ void maintainTime() {
   if (millis() - lastSync < interval) return;
   lastSync = millis();
 
-  display.clearDisplay();
-  display.setCursor(0, 0);
-  display.print(F("maintainTime"));
+  display.fillCircle(62, 120, 4, SSD1306_WHITE);
   display.display();
 
   if (WiFi.status() != WL_CONNECTED) {

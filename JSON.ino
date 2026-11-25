@@ -18,9 +18,7 @@ bool weatherOk = false;   //last check of API
 unsigned long lastWeatherTry = 0;
 
 bool fetchWeather() {
-  display.clearDisplay();
-  display.setCursor(0, 0);
-  display.print(F("fetchWeather"));
+  display.fillCircle(62, 120, 4, SSD1306_WHITE);
   display.display();
 
   WiFiSSLClient client;
@@ -58,13 +56,6 @@ bool fetchWeather() {
   sunriseStr  = String(sr).substring(11, 16);      // "07:19"
   sunsetStr   = String(ss).substring(11, 16);
   weatherValid = true;
-
-  Serial.print(F("Weather OK: "));
-  Serial.print(weatherTemp); Serial.print(F(" C, "));
-  Serial.print(weatherWind); Serial.print(F(" km/h, code "));
-  Serial.print(weatherCode); Serial.print(F(", "));
-  Serial.print(sunriseStr);  Serial.print(F(" / "));
-  Serial.println(sunsetStr);
   return true;
 }
 

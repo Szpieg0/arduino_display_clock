@@ -17,7 +17,6 @@
 #define SCREEN_ADDRESS 0x3C //For my OLED display
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-//Classes etc.
 WiFiUDP Udp;
 NTPClient timeClient(Udp);
 //Adafruit SHT sensor
@@ -47,7 +46,7 @@ float liveHumi;
 /*Przygotowanie wszystkich modułów:*/
 void setup(){
   Serial.begin(9600);
-  Wire.begin();
+  Wire1.begin();
   pinMode(buttonPin, INPUT);
   pinMode(LED_BUILTIN, OUTPUT);
 
@@ -72,7 +71,7 @@ void setup(){
   timeClient.begin();
   timeSynced = syncTime();
   lastSync = millis();
-  if (!sht4.begin(&Wire)) {
+  if (!sht4.begin(&Wire1)) {
     display.clearDisplay();
     display.println(F("SHT40 err."));
     display.display();
