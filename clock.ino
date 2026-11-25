@@ -25,12 +25,10 @@ bool syncTime() {
     if (timeClient.forceUpdate()) {
       RTCTime utcTime(timeClient.getEpochTime());   // UTC
       RTC.setTime(utcTime);
-      Serial.println("NTP sync OK");
       return true;
     }
     delay(500);
   }
-  Serial.println("NTP sync FAILED");
   ntpAlert();
   return false;
 }

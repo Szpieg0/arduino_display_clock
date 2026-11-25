@@ -22,6 +22,8 @@ void weatherScreen(){
 
   display.setTextSize(1);
   display.setCursor(0, 44);
+  display.print("WMO Code: ");
+  display.setCursor(display.getCursorX() + 4,44);
   display.print(weatherCodeText(weatherCode));
 
   display.setCursor(0, 56);

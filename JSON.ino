@@ -24,7 +24,6 @@ bool fetchWeather() {
   WiFiSSLClient client;
   client.setTimeout(5000);
   if (!client.connect(WEATHER_HOST, WEATHER_PORT)) {
-    Serial.println(F("Error of Weather API module"));
     return false;
   }
 
