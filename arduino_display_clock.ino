@@ -27,6 +27,8 @@ Adafruit_SHT4x sht4 = Adafruit_SHT4x();
 //Button
 const int buttonPin = 2; 
 
+bool needsRefresh = TRUE;
+
 int lastSecond = -1;
 uint32_t lastTempReading = 0;
 unsigned long lastSync = 0;
@@ -35,6 +37,7 @@ const unsigned long SYNC_INTERVAL = 600000UL;   // 10 min
 const unsigned long RETRY_INTERVAL = 30000UL;    // 30 s
 const unsigned long tempInterval = 1000;  //1 second
 const int screens = 3; // number of screens
+
 
 bool connectToWiFi(unsigned long timeoutMs = 20000);
 
@@ -47,6 +50,7 @@ void setup(){
   Serial.begin(9600);
   Wire.begin();
   pinMode(buttonPin, INPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
 
   display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS);
   delay(300);
@@ -80,6 +84,7 @@ void setup(){
   sensors_event_t humidity, temp;
   sht4.getEvent(&humidity, &temp);
   liveTemp = temp.temperature;
+  liveHumi = humidity.relative_humidity;
   clockScreen();
 
 }
@@ -92,9 +97,12 @@ void loop() {
     } else{
       screenState = 0;
     }
-    while (buttonPin == 1){
+    while (digitalRead(buttonPin) == HIGH){
       delay(80);
+      digitalWrite(LED_BUILTIN, HIGH);
     }
+  }else if (digitalRead(buttonPin) == LOW){
+    digitalWrite(LED_BUILTIN, LOW);
   }
   switch (screenState){
     case 0: {
@@ -115,21 +123,22 @@ void loop() {
         liveTemp = temp.temperature;
         liveHumi = humidity.relative_humidity;
         }
-      tempScreen();
-      break;
+        tempScreen();
+        break;
       }
       case 2: {
-        sunScreen();
+        weatherScreen();
         break;
       }
       case 3: {
-        meteoScreen();
+        sunScreen();
         break;
       }
   
   }
   
   maintainTime();
+  maintainWeather();
 }
 
 
@@ -155,6 +164,7 @@ String twoDigits(int value) {
   }
   return String(value);
 }
+
 void ntpAlert(){
   display.clearDisplay();
   display.setTextSize(1);

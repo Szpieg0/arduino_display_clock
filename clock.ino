@@ -57,9 +57,15 @@ RTCTime getLocalTime() {
 
 
 void maintainTime() {
+  
   unsigned long interval = timeSynced ? SYNC_INTERVAL : RETRY_INTERVAL;
   if (millis() - lastSync < interval) return;
   lastSync = millis();
+
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.print(maintainTime);
+  display.display();
 
   if (WiFi.status() != WL_CONNECTED) {
     if (!connectToWiFi(10000)) return;

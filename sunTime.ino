@@ -1,4 +1,0 @@
-void sunScreen(){
-  display.clearDisplay();
-
-}
