@@ -1,5 +1,5 @@
 void sunScreen(){
-  if (needsRefresh == TRUE){
+  if (needsRefresh == true){
   display.clearDisplay();
   display.setTextSize(1);
   display.setCursor(0, 0);
@@ -11,10 +11,10 @@ void sunScreen(){
   display.print(sunriseStr);
 
   display.setCursor(0, 44);
-  display.print(F("sunshine "));
+  display.print(F("sunset "));
   display.print(sunsetStr);
   display.display();
-  bool needsRefresh = FALSE;
+  needsRefresh = false;
   } else {
   return;
   }

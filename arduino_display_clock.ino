@@ -1,12 +1,11 @@
-#include "RTC.h"
-#include <NTPClient.h>
 #if defined(ARDUINO_PORTENTA_C33)
 #include <WiFiC3.h>
 #elif defined(ARDUINO_UNOWIFIR4)
 #include <WiFiS3.h>
 #endif
+#include "RTC.h"
+#include <NTPClient.h>
 #include <WiFiUdp.h>
-#include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -27,10 +26,10 @@ Adafruit_SHT4x sht4 = Adafruit_SHT4x();
 //Button
 const int buttonPin = 2; 
 
-bool needsRefresh = TRUE;
+bool needsRefresh = true;
 
 int lastSecond = -1;
-uint32_t lastTempReading = 0;
+unsigned long lastTempReading = 0;
 unsigned long lastSync = 0;
 bool timeSynced = false;
 const unsigned long SYNC_INTERVAL = 600000UL;   // 10 min
@@ -69,7 +68,6 @@ void setup(){
   delay(4000);
   }
 
-  //RTC & NTP section
   RTC.begin();
   timeClient.begin();
   timeSynced = syncTime();
@@ -78,7 +76,7 @@ void setup(){
     display.clearDisplay();
     display.println(F("SHT40 err."));
     display.display();
-    delay(2000);
+    delay(4000);
   }
   sht4.setPrecision(SHT4X_MED_PRECISION);
   sensors_event_t humidity, temp;
@@ -93,6 +91,7 @@ void setup(){
 void loop() {
   if (digitalRead(buttonPin) == HIGH){
     if(screenState < screens){
+      needsRefresh = true;
       screenState++;
     } else{
       screenState = 0;
@@ -101,9 +100,9 @@ void loop() {
       delay(80);
       digitalWrite(LED_BUILTIN, HIGH);
     }
-  }else if (digitalRead(buttonPin) == LOW){
+  } else{
     digitalWrite(LED_BUILTIN, LOW);
-  }
+    }
   switch (screenState){
     case 0: {
       RTCTime now;
@@ -122,17 +121,17 @@ void loop() {
         sht4.getEvent(&humidity, &temp);
         liveTemp = temp.temperature;
         liveHumi = humidity.relative_humidity;
-        }
         tempScreen();
+        }
         break;
       }
-      case 2: {
-        weatherScreen();
-        break;
+    case 2: {
+      weatherScreen();
+      break;
       }
-      case 3: {
-        sunScreen();
-        break;
+    case 3: {
+      sunScreen();
+      break;
       }
   
   }

@@ -64,11 +64,14 @@ void maintainTime() {
 
   display.clearDisplay();
   display.setCursor(0, 0);
-  display.print(maintainTime);
+  display.print(F("maintainTime"));
   display.display();
 
   if (WiFi.status() != WL_CONNECTED) {
     if (!connectToWiFi(10000)) return;
   }
-  if (syncTime()) timeSynced = syncTime();
-}
+  if (syncTime()) {
+    timeSynced = true;
+  }
+
+  }

@@ -12,7 +12,7 @@ float weatherTemp = 0;
 float weatherWind = 0;
 int   weatherCode = 0;
 String sunriseStr = "--:--";     // sunrise
-String sunsetStr  = "--:--";     // sunshine
+String sunsetStr  = "--:--";     // sunset
 bool weatherValid = false;
 bool weatherOk = false;   //last check of API
 unsigned long lastWeatherTry = 0;
@@ -20,8 +20,9 @@ unsigned long lastWeatherTry = 0;
 bool fetchWeather() {
   display.clearDisplay();
   display.setCursor(0, 0);
-  display.print(fetchWeather);
+  display.print(F("fetchWeather"));
   display.display();
+
   WiFiSSLClient client;
   client.setTimeout(5000);
   if (!client.connect(WEATHER_HOST, WEATHER_PORT)) {
@@ -74,26 +75,26 @@ void maintainWeather() {
   lastWeatherTry = millis();
   if (WiFi.status() != WL_CONNECTED) { weatherOk = false; return; }
   weatherOk = fetchWeather();
-  bool needsRefresh = TRUE;
+  needsRefresh = true;
 }
 
-const char* weatherCodeText(int code) {   // WMO codes in Polish
-  switch (code) {
-    case 0:  return "Bezchmurnie";
-    case 1:  return "Prawie bezchmurnie";
-    case 2:  return "Czesciowe zachm.";
-    case 3:  return "Pochmurno";
-    case 45: case 48: return "Mgla";
-    case 51: case 53: case 55: return "Mzawka";
-    case 56: case 57: return "Marznaca mzawka";
-    case 61: case 63: case 65: return "Deszcz";
-    case 66: case 67: return "Marznacy deszcz";
-    case 71: case 73: case 75: return "Snieg";
-    case 77: return "Ziarna sniegu";
-    case 80: case 81: case 82: return "Przelotny deszcz";
-    case 85: case 86: return "Przelotny snieg";
-    case 95: return "Burza";
-    case 96: case 99: return "Burza z gradem";
-    default: return "Nieznany kod";
+const char* weatherCodeText(int code) {   // WMO codes
+    switch (code) {
+    case 0:  return "Clear sky";
+    case 1:  return "Mainly clear";
+    case 2:  return "Partly cloudy";
+    case 3:  return "Overcast";
+    case 45: case 48: return "Fog";
+    case 51: case 53: case 55: return "Drizzle";
+    case 56: case 57: return "Freezing drizzle";
+    case 61: case 63: case 65: return "Rain";
+    case 66: case 67: return "Freezing rain";
+    case 71: case 73: case 75: return "Snow fall";
+    case 77: return "Snow grains";
+    case 80: case 81: case 82: return "Rain showers";
+    case 85: case 86: return "Snow showers";
+    case 95: return "Thunderstorm";
+    case 96: case 99: return "Thunderstorm with hail";
+    default: return "Unknown code";
   }
 }
