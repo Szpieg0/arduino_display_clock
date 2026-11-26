@@ -78,7 +78,7 @@ bool fetchWeather() {
   rainSum      = day["rain_sum"][0];
   showersSum   = day["showers_sum"][0];
   snowfallSum  = day["snowfall_sum"][0];
-  sunriseStr  = String(sr).substring(11, 16);      // "07:19"
+  sunriseStr  = String(sr).substring(11, 16);
   sunsetStr   = String(ss).substring(11, 16);
   weatherValid = true;
   return true;
