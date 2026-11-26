@@ -18,7 +18,7 @@ void sunScreen(){
   display.setTextSize(1);
   display.setCursor(0, 0);
   display.print(F("Sunrise and sunset"));
-  display.setCursor(0,6);
+  display.setCursor(0,8);
   display.print(F("Warsaw"));
 
   display.setTextSize(2);

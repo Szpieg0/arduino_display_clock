@@ -29,6 +29,8 @@ String formatTime(int hour, int minute) {
 
 
 bool syncTime() {
+  timeClient.end();
+  timeClient.begin();
   if (timeClient.forceUpdate()) {
   syncEpoch = timeClient.getEpochTime();
   syncMillis = millis();
