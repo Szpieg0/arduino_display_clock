@@ -36,7 +36,7 @@ time_t syncEpoch = 0;
 unsigned long syncMillis = 0;
 bool timeSynced = false;
 const unsigned long SYNC_INTERVAL = 1800000UL;   // 10 min
-const unsigned long RETRY_INTERVAL = 30000UL;    // 30 s
+const unsigned long RETRY_INTERVAL = 10000UL;    // 30 s
 const unsigned long tempInterval = 1000;  //1 second
 
 const int screens = 4; // number of screens + 1

@@ -1,5 +1,13 @@
 //Main Clock Screen
 void clockScreen(){
+  if (syncEpoch == 0) {
+  display.clearDisplay();
+  display.setTextSize(4);
+  display.setCursor(0, 15);
+  display.print(F("--:--"));
+  display.display();
+  return;
+}
   RTCTime currentTime = getLocalTime();
   int currentHour = currentTime.getHour();
   int currentMinutes = currentTime.getMinutes();

@@ -34,19 +34,20 @@ void rainScreen(){
   display.print(F("cm"));
 
   display.setCursor(0, 32);
-  display.print(F("Day R "));
+  display.print(F("Day Rain:"));
   display.print(rainSum, 1);
-  display.print(F(" Sh "));
+  display.print(F(" Shower: "));
   display.print(showersSum, 1);
-  display.print(F(" Sn "));
+  display.setCursor(0, 40)
+  display.print(F("Snow: "));
   display.print(snowfallSum, 1);
 
-  display.setCursor(0, 40);
+  display.setCursor(0, 48);
   display.print(F("Pressure: "));
   display.print(pressure, 0);
   display.print(F(" hPa"));
 
-  display.setCursor(0, 48);
+  display.setCursor(0, 56);
   display.print(F("UV max: "));
   display.print(uvMax, 1);
   display.display();
