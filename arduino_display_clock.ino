@@ -1,3 +1,4 @@
+//Constant libraries
 #if defined(ARDUINO_PORTENTA_C33)
 #include <WiFiC3.h>
 #elif defined(ARDUINO_UNOWIFIR4)
@@ -18,32 +19,36 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 WiFiUDP Udp;
-NTPClient timeClient(Udp);
-//Adafruit SHT sensor
+NTPClient timeClient(Udp, "pl.pool.ntp.org"); //NTP server
+
 #include "Adafruit_SHT4x.h"
 Adafruit_SHT4x sht4 = Adafruit_SHT4x();
 //Button
 const int buttonPin = 2; 
-
+bool lastButtonState = false;
 bool needsRefresh = true;
 
+//variables for time sync
 int lastSecond = -1;
 unsigned long lastTempReading = 0;
 unsigned long lastSync = 0;
+time_t syncEpoch = 0;
+unsigned long syncMillis = 0;
 bool timeSynced = false;
-const unsigned long SYNC_INTERVAL = 600000UL;   // 10 min
+const unsigned long SYNC_INTERVAL = 1800000UL;   // 10 min
 const unsigned long RETRY_INTERVAL = 30000UL;    // 30 s
 const unsigned long tempInterval = 1000;  //1 second
-const int screens = 3; // number of screens
 
+const int screens = 4; // number of screens + 1
+int screenState = 0;
 
 bool connectToWiFi(unsigned long timeoutMs = 20000);
-
-int screenState = 0;
+//temp variables
 float liveTemp;
 float liveHumi;
 
-/*Przygotowanie wszystkich modułów:*/
+//Przygotowanie wszystkich modułów:
+
 void setup(){
   Serial.begin(9600);
   Wire1.begin();
@@ -51,7 +56,6 @@ void setup(){
   pinMode(LED_BUILTIN, OUTPUT);
 
   display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS);
-  delay(300);
   display.clearDisplay();
   display.setTextSize(2);
   display.setTextColor(SSD1306_WHITE);
@@ -67,7 +71,6 @@ void setup(){
   delay(4000);
   }
 
-  RTC.begin();
   timeClient.begin();
   timeSynced = syncTime();
   lastSync = millis();
@@ -83,33 +86,29 @@ void setup(){
   liveTemp = temp.temperature;
   liveHumi = humidity.relative_humidity;
   clockScreen();
-
 }
 
 
 void loop() {
-  if (digitalRead(buttonPin) == HIGH){
+  if (digitalRead(buttonPin) == LOW && lastButtonState == true){
+    lastButtonState = false;
+  }
+  if (digitalRead(buttonPin) == HIGH && lastButtonState == false){
     if(screenState < screens){
-      needsRefresh = true;
       screenState++;
     } else{
       screenState = 0;
     }
-    while (digitalRead(buttonPin) == HIGH){
-      delay(80);
-      digitalWrite(LED_BUILTIN, HIGH);
-    }
-  } else{
-    digitalWrite(LED_BUILTIN, LOW);
-    }
+    needsRefresh = true;
+    lastButtonState = true;
+  }
+  
   switch (screenState){
     case 0: {
-      RTCTime now;
-      RTC.getTime(now);
-
-      if (now.getSeconds() != lastSecond) {
-      lastSecond = now.getSeconds();
-      clockScreen();
+      int sec = utcNow() % 60;
+      if (sec != lastSecond) {
+        lastSecond = sec;
+        clockScreen();
       }
       break;
       }
@@ -130,6 +129,10 @@ void loop() {
       }
     case 3: {
       sunScreen();
+      break;
+      }
+    case 4: {
+      rainScreen();
       break;
       }
   
@@ -161,13 +164,4 @@ String twoDigits(int value) {
     return "0" + String(value);
   }
   return String(value);
-}
-
-void ntpAlert(){
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setCursor(0,0);
-  display.print(F("NTP ERROR!"));
-  display.display();
-  delay(2000);
 }

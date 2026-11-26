@@ -21,15 +21,11 @@ String formatTime(int hour, int minute) {
 
 
 bool syncTime() {
-  for (int i = 0; i < 3; i++) {
-    if (timeClient.forceUpdate()) {
-      RTCTime utcTime(timeClient.getEpochTime());   // UTC
-      RTC.setTime(utcTime);
-      return true;
-    }
-    delay(500);
-  }
-  ntpAlert();
+  if (timeClient.forceUpdate()) {
+  syncEpoch = timeClient.getEpochTime();
+  syncMillis = millis();
+  return true;
+}
   return false;
 }
 
@@ -46,21 +42,22 @@ bool isSummerTime(int y, int m, int d, int h) {   // All in UTC
 }
 
 RTCTime getLocalTime() {
-  RTCTime utc;
-  RTC.getTime(utc);
+  RTCTime utc(utcNow());
   bool summer = isSummerTime(utc.getYear(), Month2int(utc.getMonth()), utc.getDayOfMonth(), utc.getHour());
   time_t local = utc.getUnixTime() + (summer ? 7200 : 3600);
   return RTCTime(local);
 }
 
+time_t utcNow() {
+  return syncEpoch + (millis() - syncMillis) / 1000;
+}
 
 void maintainTime() {
-  
   unsigned long interval = timeSynced ? SYNC_INTERVAL : RETRY_INTERVAL;
   if (millis() - lastSync < interval) return;
   lastSync = millis();
 
-  display.fillCircle(62, 120, 4, SSD1306_WHITE);
+  display.fillCircle(0, 60, 3, SSD1306_WHITE);
   display.display();
 
   if (WiFi.status() != WL_CONNECTED) {
@@ -69,5 +66,4 @@ void maintainTime() {
   if (syncTime()) {
     timeSynced = true;
   }
-
-  }
+}
