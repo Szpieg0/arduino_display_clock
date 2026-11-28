@@ -22,7 +22,6 @@ void clockScreen(){
   display.display();
 }
 
-
 String formatTime(int hour, int minute) {
   return twoDigits(hour) + ":" + twoDigits(minute);
 }
@@ -63,7 +62,7 @@ time_t utcNow() {
 }
 
 void maintainTime() {
-  unsigned long interval = timeSynced ? SYNC_INTERVAL : RETRY_INTERVAL;
+  unsigned long interval = timeSynced ? SYNC_INTERVAL : RETRY_INTERVAL; // If timeSynced is true than interval is SYNC_INTERVAL etc.
   if (millis() - lastSync < interval) return;
   lastSync = millis();
 
